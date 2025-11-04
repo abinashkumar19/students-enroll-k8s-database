@@ -3,45 +3,46 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Dynamic Registration</title>
+<title>Dynamic Registration Portal</title>
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
 body {
   font-family: 'Poppins', sans-serif;
-  background: radial-gradient(circle at top right, #6a11cb, #2575fc);
-  height: 100vh;
+  background: linear-gradient(135deg, #6a11cb, #2575fc);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   overflow-y: auto;
-  padding: 40px 0;
-  margin: 0;
 }
 
 .container {
+  margin-top: 60px;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(14px);
-  border-radius: 20px;
+  border-radius: 16px;
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
   padding: 40px 35px;
   width: 90%;
-  max-width: 480px;
+  max-width: 520px;
   color: #fff;
   text-align: center;
-  animation: fadeIn 1.2s ease forwards;
+  animation: slideIn 0.9s ease forwards;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(30px); }
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(40px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 h2 {
   margin-bottom: 25px;
   font-weight: 600;
-  letter-spacing: 1px;
+  color: #fff;
   text-shadow: 0 0 6px rgba(255, 255, 255, 0.3);
 }
 
@@ -72,7 +73,7 @@ h2 {
   top: 50%;
   left: 14px;
   transform: translateY(-50%);
-  color: #ddd;
+  color: #ccc;
   pointer-events: none;
   font-size: 14px;
   transition: all 0.3s ease;
@@ -107,31 +108,42 @@ button:hover {
   text-align: center;
   margin-top: 10px;
   font-size: 14px;
-  color: #ffb3b3;
   min-height: 18px;
 }
 
-.user-info {
-  margin-top: 30px;
+.user-card {
+  margin-top: 25px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: left;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  animation: fadeUp 0.8s ease;
+}
+
+.user-card h3 {
+  color: #00ffcc;
+  margin-bottom: 10px;
+}
+
+.user-card p {
+  margin: 6px 0;
+  font-size: 14px;
+  color: #eee;
+}
+
+.user-list {
+  margin-top: 40px;
+  background: rgba(255, 255, 255, 0.15);
   padding: 20px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
-  animation: fadeUp 0.8s ease;
-  text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  animation: fadeUp 1s ease;
 }
 
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-.user-list {
-  margin-top: 40px;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .user-list h3 {
@@ -159,28 +171,35 @@ button:hover {
 
 <body>
 <div class="container">
-  <h2>✨ Register</h2>
+  <h2>🚀 Register New User</h2>
+
   <div class="input-group">
     <input type="text" id="username" placeholder=" " required />
     <label for="username">Username</label>
   </div>
+
   <div class="input-group">
     <input type="email" id="email" placeholder=" " required />
     <label for="email">Email</label>
   </div>
+
   <div class="input-group">
     <input type="password" id="password" placeholder=" " required />
     <label for="password">Password</label>
   </div>
+
   <button onclick="register()">Register</button>
   <p class="message" id="message"></p>
 
-  <div class="user-info" id="userInfo">
+  <!-- Dynamic Card for Current User -->
+  <div class="user-card" id="currentUser" style="display:none;">
     <h3>🎉 Registration Successful!</h3>
-    <p><strong>Username:</strong> <span id="displayUsername"></span></p>
-    <p><strong>Email:</strong> <span id="displayEmail"></span></p>
+    <p><strong>Username:</strong> <span id="detailUsername"></span></p>
+    <p><strong>Email:</strong> <span id="detailEmail"></span></p>
+    <p><strong>Registered On:</strong> <span id="detailDate"></span></p>
   </div>
 
+  <!-- Dynamic Table for All Users -->
   <div class="user-list" id="userList" style="display:none;">
     <h3>👥 Registered Users</h3>
     <table class="user-table" id="usersTable">
@@ -189,6 +208,7 @@ button:hover {
           <th>#</th>
           <th>Username</th>
           <th>Email</th>
+          <th>Created</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -204,23 +224,18 @@ async function register() {
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value.trim();
   const messageElem = document.getElementById('message');
-  const userInfo = document.getElementById('userInfo');
-  const displayUsername = document.getElementById('displayUsername');
-  const displayEmail = document.getElementById('displayEmail');
 
   messageElem.textContent = '';
-  userInfo.style.display = 'none';
+  messageElem.style.color = '#ffb3b3';
 
   if (username.length < 3) {
     messageElem.textContent = "⚠️ Username must be at least 3 characters.";
     return;
   }
-
   if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
     messageElem.textContent = "⚠️ Invalid email address.";
     return;
   }
-
   if (password.length < 6) {
     messageElem.textContent = "⚠️ Password must be at least 6 characters.";
     return;
@@ -234,21 +249,28 @@ async function register() {
     });
 
     const data = await response.json();
-
     if (response.ok) {
       messageElem.style.color = "#00ffcc";
-      messageElem.textContent = "✅ Registration successful!";
-      displayUsername.textContent = username;
-      displayEmail.textContent = email;
-      userInfo.style.display = "block";
-      fetchUsers(); // Refresh user list
+      messageElem.textContent = "✅ User registered successfully!";
+
+      // Show current user details
+      const currentCard = document.getElementById("currentUser");
+      document.getElementById("detailUsername").textContent = username;
+      document.getElementById("detailEmail").textContent = email;
+      document.getElementById("detailDate").textContent = new Date().toLocaleString();
+      currentCard.style.display = "block";
+
+      // Clear inputs
+      document.getElementById('username').value = '';
+      document.getElementById('email').value = '';
+      document.getElementById('password').value = '';
+
+      await fetchUsers(); // Refresh user list
     } else {
-      messageElem.style.color = "#ffb3b3";
-      messageElem.textContent = data.error || "Something went wrong.";
+      messageElem.textContent = data.error || "❌ Registration failed.";
     }
   } catch (error) {
-    messageElem.style.color = "#ffb3b3";
-    messageElem.textContent = "❌ Network error. Please try again.";
+    messageElem.textContent = "❌ Network error. Try again.";
   }
 }
 
@@ -258,15 +280,16 @@ async function fetchUsers() {
     const users = await response.json();
     const tableBody = document.querySelector("#usersTable tbody");
     const userList = document.getElementById("userList");
-    tableBody.innerHTML = '';
 
+    tableBody.innerHTML = '';
     if (users && users.length > 0) {
-      users.forEach((u, index) => {
+      users.forEach((u, i) => {
         const row = document.createElement("tr");
         row.innerHTML = `
-          <td>${index + 1}</td>
-          <td>${u.username || '—'}</td>
-          <td>${u.email || '—'}</td>
+          <td>${i + 1}</td>
+          <td>${u.username || '-'}</td>
+          <td>${u.email || '-'}</td>
+          <td>${new Date(u.created_at).toLocaleString()}</td>
         `;
         tableBody.appendChild(row);
       });
@@ -279,7 +302,7 @@ async function fetchUsers() {
   }
 }
 
-// Fetch user list on page load
+// Load existing users on page open
 fetchUsers();
 </script>
 </body>
