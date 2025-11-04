@@ -1,1 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Next-Gen Registration</title>
 
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: radial-gradient(circle at top right, #6a11cb, #2575fc);
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  color: #fff;
+}
+
+.container {
+  position: relative;
+  width: 90%;
+  max-width: 420px;
+  padding: 40px 35px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(14px);
+  border-radius: 20px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
+  animation: fadeIn 1.2s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-shadow: 0 0 6px rgba(255, 255, 255, 0.3);
+}
+
+.input-group {
+  position: relative;
+  margin-bottom: 25px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 14px 12px;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: 10px;
+  outline: none;
+  color: #fff;
+  font-size: 15px;
+  transition: all 0.3s ease;
+}
+
+.input-group input:focus {
+  box-shadow: 0 0 12px rgba(37, 117, 252, 0.6);
+}
+
+.input-group label {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  color: #ddd;
+  pointer-events: none;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label {
+  top: -10px;
+  font-size: 12px;
+  color: #00eaff;
+}
+
+.strength-bar {
+  height: 6px;
+  border-radius: 6px;
+  margin-top: -12px;
+  margin-bottom: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.strength-bar-inner {
+  height: 100%;
+  width: 0;
+  border-radius: 6px;
+  transition: width 0.4s ease, background 0.4s ease;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(90deg, #6a11cb, #2575fc);
+  color: white;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  background: linear-gradient(90deg, #2575fc, #6a11cb);
+  transform: scale(1.05);
+}
+
+.message {
+  text-align: center;
+  margin-top: 15px;
+  font-size: 14px;
+  color: #ffb3b3;
+  min-height: 18px;
+}
+
+.user-info {
+  display: none;
+  margin-top: 30px;
+  padding: 20px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+  animation: fadeUp 0.8s ease;
+  text-align: center;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.user-info h3 {
+  margin-bottom: 10px;
+  color: #00ffcc;
+}
+
+canvas#confetti {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+}
+</style>
+</head>
+
+<body>
+<canvas id="confetti"></canvas>
+<div class="container">
+  <h2>✨ Create Account</h2>
+  <div class="input-group">
+    <input type="text" id="username" placeholder=" " required />
+    <label for="username">Username</label>
+  </div>
+  <div class="input-group">
+    <input type="email" id="email" placeholder=" " required />
+    <label for="email">Email</label>
+  </div>
+  <div class="input-group">
+    <input type="password" id="password" placeholder=" " required />
+    <label for="password">Password</label>
+  </div>
+
+  <div class="strength-bar">
+    <div class="strength-bar-inner" id="strengthBar"></div>
+  </div>
+
+  <button onclick="register()">Register</button>
+  <p class="message" id="message"></p>
+
+  <div class="user-info" id="userInfo">
+    <h3>🎉 Registration Successful!</h3>
+    <p><strong>Username:</strong> <span id="displayUsername"></span></p>
+    <p><strong>Email:</strong> <span id="displayEmail"></span></p>
+  </div>
+</div>
+
+<script>
+// 🌈 Real-time password strength meter
+const password = document.getElementById('password');
+const strengthBar = document.getElementById('strengthBar');
+
+password.addEventListener('input', () => {
+  const value = password.value;
+  let strength = 0;
+  if (value.length >= 6) strength += 1;
+  if (/[A-Z]/.test(value)) strength += 1;
+  if (/[0-9]/.test(value)) strength += 1;
+  if (/[^A-Za-z0-9]/.test(value)) strength += 1;
+
+  const widths = ['0%', '25%', '50%', '75%', '100%'];
+  const colors = ['#fff', '#ff4b4b', '#ffb400', '#00ff88', '#00eaff'];
+  strengthBar.style.width = widths[strength];
+  strengthBar.style.background = colors[strength];
+});
+
+// 🌐 Register function with animations
+async function register() {
+  const username = document.getElementById('username').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value.trim();
+  const messageElem = document.getElementById('message');
+  const userInfo = document.getElementById('userInfo');
+  const displayUsername = document.getElementById('displayUsername');
+  const displayEmail = document.getElementById('displayEmail');
+
+  messageElem.textContent = '';
+  userInfo.style.display = 'none';
+
+  if (username.length < 3) {
+    messageElem.textContent = "⚠️ Username must be at least 3 characters.";
+    return;
+  }
+
+  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+    messageElem.textContent = "⚠️ Invalid email address.";
+    return;
+  }
+
+  if (password.length < 6) {
+    messageElem.textContent = "⚠️ Password must be at least 6 characters.";
+    return;
+  }
+
+  try {
+    const response = await fetch("http://<LB-EXTERNAL-IP>/api/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, email, password })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      messageElem.style.color = "#00ffcc";
+      messageElem.textContent = "✅ " + (data.message || "Registration successful!");
+      displayUsername.textContent = username;
+      displayEmail.textContent = email;
+      userInfo.style.display = "block";
+      launchConfetti();
+      userInfo.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      messageElem.style.color = "#ffb3b3";
+      messageElem.textContent = data.error || "Something went wrong.";
+    }
+  } catch (error) {
+    messageElem.style.color = "#ffb3b3";
+    messageElem.textContent = "❌ Network error. Please try again.";
+  }
+}
+
+// 🎊 Confetti Animation
+function launchConfetti() {
+  const canvas = document.getElementById('confetti');
+  const ctx = canvas.getContext('2d');
+  const pieces = Array.from({ length: 150 }, () => ({
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight - window.innerHeight,
+    r: Math.random() * 6 + 2,
+    d: Math.random() * 10 + 5,
+    color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+    tilt: Math.random() * 10 - 10,
+  }));
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p => {
+      ctx.beginPath();
+      ctx.fillStyle = p.color;
+      ctx.ellipse(p.x, p.y, p.r, p.r / 2, p.tilt, 0, 2 * Math.PI);
+      ctx.fill();
+    });
+    update();
+    requestAnimationFrame(draw);
+  }
+
+  function update() {
+    pieces.forEach(p => {
+      p.y += Math.cos(p.d) + 1 + p.r / 2;
+      p.x += Math.sin(p.d);
+      if (p.y > canvas.height) {
+        p.x = Math.random() * canvas.width;
+        p.y = -10;
+      }
+    });
+  }
+
+  draw();
+}
+</script>
+</body>
+</html>
