@@ -7,9 +7,9 @@ CORS(app)
 
 # Database configuration
 db_config = {
-    "host": "database-2.c9266mewer2a.eu-west-1.rds.amazonaws.com",
+    "host": "",
     "user": "admin",
-    "password": "Cloud1234",
+    "password": "",
     "database": "registrationdb"  # ✅ your DB name
 }
 
